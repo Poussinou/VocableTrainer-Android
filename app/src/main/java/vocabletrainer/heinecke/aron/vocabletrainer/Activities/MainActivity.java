@@ -12,6 +12,7 @@ import android.widget.Button;
 import vocabletrainer.heinecke.aron.vocabletrainer.R;
 import vocabletrainer.heinecke.aron.vocabletrainer.lib.Database;
 
+import static vocabletrainer.heinecke.aron.vocabletrainer.Activities.FileActivity.REQUIRED_PERMISSION;
 import static vocabletrainer.heinecke.aron.vocabletrainer.Activities.ListSelector.PARAM_NEW_ACTIVITY;
 
 /**
@@ -137,8 +138,16 @@ public class MainActivity extends AppCompatActivity {
      * @param view
      */
     public void showExport(View view){
-        Intent myIntent = new Intent(this, FileActivity.class);
-        this.startActivity(myIntent);
+        if(PermActivity.hasPermission(getApplicationContext(),FileActivity.REQUIRED_PERMISSION)) {
+            Intent myIntent = new Intent(this, FileActivity.class);
+            this.startActivity(myIntent);
+        }else{
+            Intent myIntent = new Intent(this, PermActivity.class);
+            myIntent.putExtra(PermActivity.PARAM_NEW_ACTIVITY,FileActivity.class);
+            myIntent.putExtra(PermActivity.PARAM_PERMISSION, FileActivity.REQUIRED_PERMISSION);
+            myIntent.putExtra(PermActivity.PARAM_MESSAGE,"Permission required to load/write CSV files for export/import.");
+            this.startActivity(myIntent);
+        }
     }
 
 }

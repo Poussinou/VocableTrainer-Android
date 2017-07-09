@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="vocabletrainer.heinecke.aron.vocabletrainer">
+
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
@@ -23,5 +24,7 @@
         <activity android:name=".Activities.TrainerSettingsActivity" />
         <activity android:name=".Activities.AboutActivity" />
         <activity android:name=".Activities.FileActivity" />
+        <activity android:name=".Activities.PermActivity"></activity>
     </application>
+
 </manifest>
