@@ -132,4 +132,13 @@ public class MainActivity extends AppCompatActivity {
         this.startActivity(myIntent);
     }
 
+    /**
+     * Open export activity
+     * @param view
+     */
+    public void showExport(View view){
+        Intent myIntent = new Intent(this, FileActivity.class);
+        this.startActivity(myIntent);
+    }
+
 }

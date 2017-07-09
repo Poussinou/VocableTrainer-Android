@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name" translatable="false">VocableTrainer Alpha</string>
+    <string name="app_name" translatable="false">VocableTrainer Beta</string>
     <string name="Trainer_hint_solution">Answer</string>
     <string name="Trainer_btn_ok">Ok</string>
     <string name="Main_btn_About">About</string>
@@ -32,7 +32,7 @@
     <string name="Trainer_Diag_finished_MSG">You\'ve finished this training session.</string>
     <string name="Trainer_Diag_finished_btn_OK">Ok</string>
     <string name="Editor_Diag_delete_Title">Delete Entry</string>
-    <string formatted="false" name="Editor_Diag_delete_MSG_part">Do you want to delete this entry ?</string>
+    <string name="Editor_Diag_delete_MSG_part" formatted="false">Do you want to delete this entry ?</string>
     <string name="Editor_Diag_delete_btn_OK">Delete</string>
     <string name="Editor_Diag_delete_btn_CANCEL">Cancel</string>
     <string name="Editor_Diag_edit_Title">Edit Entry</string>
@@ -42,10 +42,10 @@
     <string name="Editor_Diag_table_Title_Edit">Edit List</string>
     <string name="Editor_Diag_table_MSG">Please set the list information</string>
     <string name="Editor_Diag_table_btn_Ok">Ok</string>
-    <string formatted="false" name="About_Msg" translatable="false">About: VocableTrainer %v\nCopyright 2017 Aron Heinecke\nLicensed under Apache License 2.0\n\nBug Reports: github.com/0xpr03/VocableTrainer-Android</string>
+    <string name="About_Msg" formatted="false" translatable="false">About: VocableTrainer %v\nCopyright 2017 Aron Heinecke\nLicensed under Apache License 2.0\n\nBug Reports: github.com/0xpr03/VocableTrainer-Android</string>
     <string name="About_btn_Close">Close</string>
     <string name="ListSelector_Diag_delete_Title">Delete List</string>
-    <string formatted="false" name="ListSelector_Diag_delete_Msg">Do you really want to delete the following list: %s: %s, %s</string>
+    <string name="ListSelector_Diag_delete_Msg" formatted="false">Do you really want to delete the following list: %s: %s, %s</string>
     <string name="ListSelector_Diag_delete_btn_Delete">Delete</string>
     <string name="ListSelector_Diag_delete_btn_Cancel">Cancel</string>
 </resources>
