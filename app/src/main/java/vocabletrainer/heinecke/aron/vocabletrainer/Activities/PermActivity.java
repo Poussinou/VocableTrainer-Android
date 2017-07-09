@@ -1,27 +1,19 @@
 package vocabletrainer.heinecke.aron.vocabletrainer.Activities;
 
-import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.support.annotation.BoolRes;
+import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
-
-import org.w3c.dom.Text;
 
 import vocabletrainer.heinecke.aron.vocabletrainer.R;
-
-import static vocabletrainer.heinecke.aron.vocabletrainer.lib.PermissionManager.MY_PERMISSIONS_REQUEST_READ_STORAGE;
 
 /**
  * Activity to request permissions
@@ -47,9 +39,7 @@ public class PermActivity extends AppCompatActivity {
      * @return true when context has specified permission
      */
     public static boolean hasPermission(Context context, String perm) {
-        return ContextCompat.checkSelfPermission(context, perm) == PackageManager.PERMISSION_GRANTED)
-        ;
-
+        return ContextCompat.checkSelfPermission(context, perm) == PackageManager.PERMISSION_GRANTED;
     }
 
     @Override
@@ -84,27 +74,29 @@ public class PermActivity extends AppCompatActivity {
 
     /**
      * Called upon retry click
+     *
      * @param view
      */
-    public void onRetry(View view){
+    public void onRetry(View view) {
         requestPerm();
     }
 
     /**
      * Wrapper around requestPerm for unique calls
      */
-    private void requestPerm(){
-        requestPerm(getApplicationContext(),this,permission);
+    private void requestPerm() {
+        requestPerm(getApplicationContext(), this, permission);
     }
 
     /**
      * Request permissions for generic context & activity
+     *
      * @param context
      * @param activity
      * @param perm
      */
     private static void requestPerm(Context context, Activity activity, String perm) {
-        if (!hasPermission(context,perm)) {
+        if (!hasPermission(context, perm)) {
 
             // Should we show an explanation?
             if (ActivityCompat.shouldShowRequestPermissionRationale(activity,
@@ -130,8 +122,7 @@ public class PermActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           String permissions[], int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
         switch (requestCode) {
             case MY_PERMISSIONS_REQUEST_READ_STORAGE: {
                 //premission to read storage

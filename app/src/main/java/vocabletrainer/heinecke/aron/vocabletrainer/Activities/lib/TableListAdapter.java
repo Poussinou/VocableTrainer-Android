@@ -95,7 +95,6 @@ public class TableListAdapter extends ArrayAdapter<Table> {
             colB.setTypeface(null,Typeface.BOLD);
         }
 
-        Log.d("TableListAdapter","setting text: "+item.getName()+" on "+colName.toString());
         colName.setText(item.getName());
         colA.setText(item.getNameA());
         colB.setText(String.valueOf(item.getNameB()));

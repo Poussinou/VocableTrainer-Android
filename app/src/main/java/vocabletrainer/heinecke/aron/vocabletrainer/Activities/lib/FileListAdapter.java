@@ -2,6 +2,7 @@ package vocabletrainer.heinecke.aron.vocabletrainer.Activities.lib;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -109,6 +110,13 @@ public class FileListAdapter extends BaseAdapter {
 
         holder.colA.setText(item.getName());
         holder.colB.setText(item.getSize());
+        if(item.isUnderline()){
+            holder.colA.setPaintFlags(holder.colA.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG);
+        }
+
+        if(convertView.isSelected()){
+
+        }
 
         return convertView;
     }
