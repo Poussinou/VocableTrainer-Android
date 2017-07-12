@@ -1,6 +1,7 @@
 package vocabletrainer.heinecke.aron.vocabletrainer.Activities;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
@@ -9,6 +10,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -24,22 +26,27 @@ import vocabletrainer.heinecke.aron.vocabletrainer.lib.Storage.BasicFileEntry;
 import vocabletrainer.heinecke.aron.vocabletrainer.lib.Storage.FileEntry;
 
 /**
- * File activity for file request
+ * File activity for file requests<br>
+ * <b>requires WRITE_EXTERNAL_STORAGE</b><br>
+ * To be called as startActivityForResult
  */
 public class FileActivity extends AppCompatActivity {
-    /**
-     * This permission is required for this activity to work
-     */
-    public static final String REQUIRED_PERMISSION = Manifest.permission.WRITE_EXTERNAL_STORAGE;
     /**
      * Param key for activity to call afterwards
      */
     public static final String PARAM_NEXT_ACTIVITY = "next_activity";
     /**
-     * Param key under which the selected file is <b>passed to the next activity</b><br>
-     * File is passed as string containing the absolute path
+     * Param key under which the selected file is returned to the next activity<br>
+     * File is passed as string containing the absolute path<br>
+     *     Type: File
      */
-    public static final String PARAM_PASSED_FILE = "file";
+    public static final String RETURN_FILE = "file";
+    /**
+     * Param key for return of user friendly formated file path<br>
+     * only containing the normal user-visible storage path<br>
+     *     Type: String
+     */
+    public static final String RETURN_FILE_USER_NAME = "user_file_path";
     /**
      * Param key for write flag<br>
      * Pass as true to get a save-as activity, otherwise read file "dialog"
@@ -54,6 +61,7 @@ public class FileActivity extends AppCompatActivity {
     private ListView listView;
     private EditText tFileName;
     private TextView tCurrentDir;
+    private Button bOk;
 
     private ArrayList<BasicFileEntry> entries;
     private FileListAdapter adapter;
@@ -61,6 +69,7 @@ public class FileActivity extends AppCompatActivity {
     private boolean write;
     private Class nextActivity;
     private File currentDir;
+    private BasicFileEntry selectedEntry;
     private String basicDir; // user invisible part to remove
 
     @Override
@@ -72,6 +81,7 @@ public class FileActivity extends AppCompatActivity {
         TextView msg = (TextView) findViewById(R.id.tFileMsg);
         tFileName = (EditText) findViewById(R.id.tFileName);
         tCurrentDir = (TextView) findViewById(R.id.tCurrentDir);
+        bOk = (Button) findViewById(R.id.bFileOk);
 
         Intent intent = getIntent();
         msg.setText(intent.getStringExtra(PARAM_MESSAGE));
@@ -103,15 +113,19 @@ public class FileActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, final View view, int pos, long id) {
                 BasicFileEntry entry = entries.get(pos);
-                if(entry.getTypeID() == BasicFileEntry.TYPE_FILE) {
+                if (entry.getTypeID() == BasicFileEntry.TYPE_FILE) {
                     view.setSelected(true);
-                }else if(entry.getTypeID() == BasicFileEntry.TYPE_DIR){
+                    selectedEntry = entry;
+                    bOk.setEnabled(true);
+                    if (write) {
+                        tFileName.setText(((FileEntry) entry).getName());
+                    }
+                } else if (entry.getTypeID() == BasicFileEntry.TYPE_DIR) {
                     currentDir = ((FileEntry) entry).getFile();
                     changeDir();
-                }else if(entry.getTypeID() == BasicFileEntry.TYPE_UP){
+                } else if (entry.getTypeID() == BasicFileEntry.TYPE_UP) {
                     goUp();
                 }
-//                Toast.makeText(FileActivity.this, Integer.toString(pos) + " Clicked", Toast.LENGTH_SHORT).show();
             }
 
         });
@@ -122,21 +136,53 @@ public class FileActivity extends AppCompatActivity {
     /**
      * Go on directory up in navigation, if possible
      */
-    private void goUp(){
-        if(currentDir.getAbsolutePath().equals(basicDir)){
+    private void goUp() {
+        if (currentDir.getAbsolutePath().equals(basicDir)) {
             //TODO: go to overview
-            Log.d(TAG,"cancel go up");
-        }else{
+            Log.d(TAG, "cancel go up");
+        } else {
             currentDir = currentDir.getParentFile();
             changeDir();
         }
     }
 
     /**
-     * Action for OK button press
+     * Action for Cancel button press
+     *
      * @param view
      */
-    public void onOkPressed(View view){
+    public void onCancelPressed(View view) {
+        Intent returnIntent = new Intent();
+        setResult(Activity.RESULT_CANCELED, returnIntent);
+        finish();
+    }
+
+    /**
+     * Action for OK button press
+     *
+     * @param view
+     */
+    public void onOkPressed(View view) {
+        if (selectedEntry != null) {
+            Log.d(TAG, "selected: " + selectedEntry.getName());
+            File cFile = new File(currentDir, tFileName.getText().toString());
+            if (write) {
+                if (cFile.isDirectory()) {
+                    //TODO: dir error dialog
+                    cFile = null;
+                } else if (cFile.exists()) {
+                    //TODO: exists error dialog
+                    cFile = null;
+                }
+            }
+
+            if(cFile != null){
+                Intent returnIntent = new Intent();
+                returnIntent.putExtra(RETURN_FILE,cFile);
+                returnIntent.putExtra(RETURN_FILE_USER_NAME,tCurrentDir.getText().toString());
+                setResult(Activity.RESULT_OK,returnIntent);
+                finish();
+            }
 //        boolean fileIsValid = false;
 //        File cFile;
 //        if(write){
@@ -157,6 +203,7 @@ public class FileActivity extends AppCompatActivity {
 //            intent.putExtra(PARAM_PASSED_FILE, cFile);
 //            this.startActivity(intent);
 //        }
+        }
     }
 
     /**
@@ -187,9 +234,13 @@ public class FileActivity extends AppCompatActivity {
 
     /**
      * Change directory in view to the one specified in currentDir<br>
-     *     if currentDir is null, we're assuming that the overview is required
+     * if currentDir is null, we're assuming that the overview is required
      */
     private void changeDir() {
+        selectedEntry = null;
+        if (!write) {
+            bOk.setEnabled(false);
+        }
         entries.clear();
         if (checkMediaState()) {
             if (currentDir != null) {
@@ -198,7 +249,7 @@ public class FileActivity extends AppCompatActivity {
                     Log.e(TAG, "null file list!");
                     Toast.makeText(FileActivity.this, "Unable to show files. Nullpointer", Toast.LENGTH_LONG).show();
                 } else {
-                    entries.add(new BasicFileEntry("..","",BasicFileEntry.TYPE_UP,true)); // go back entry
+                    entries.add(new BasicFileEntry("..", "", BasicFileEntry.TYPE_UP, true)); // go back entry
                     for (File file : files) {
                         entries.add(new FileEntry(file, fmt));
                     }
@@ -207,8 +258,8 @@ public class FileActivity extends AppCompatActivity {
         }
         adapter.notifyDataSetChanged();
 
-        String newDirLabel = currentDir.getAbsolutePath().replaceFirst(basicDir,"");
-        if(newDirLabel.length() == 0)
+        String newDirLabel = currentDir.getAbsolutePath().replaceFirst(basicDir, "");
+        if (newDirLabel.length() == 0)
             newDirLabel = "/";
         tCurrentDir.setText(newDirLabel);
     }

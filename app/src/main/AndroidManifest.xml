@@ -24,7 +24,12 @@
         <activity android:name=".Activities.TrainerSettingsActivity" />
         <activity android:name=".Activities.AboutActivity" />
         <activity android:name=".Activities.FileActivity" />
-        <activity android:name=".Activities.PermActivity"></activity>
+        <activity android:name=".Activities.PermActivity" />
+        <activity android:name=".Activities.ExportActivity" />
+        <activity
+            android:name=".Activities.test.test"
+            android:label="@string/title_activity_test"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
 </manifest>

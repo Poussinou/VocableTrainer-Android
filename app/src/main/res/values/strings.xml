@@ -49,4 +49,7 @@
     <string name="ListSelector_Diag_delete_btn_Delete">Delete</string>
     <string name="ListSelector_Diag_delete_btn_Cancel">Cancel</string>
     <string name="title_activity_permission">PermissionActivity</string>
+    <string name="title_activity_export">ExportActivity</string>
+    <string name="title_activity_test">test</string>
+    <string name="Export_Delimiter">,;.</string>
 </resources>

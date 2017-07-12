@@ -138,13 +138,13 @@ public class MainActivity extends AppCompatActivity {
      * @param view
      */
     public void showExport(View view){
-        if(PermActivity.hasPermission(getApplicationContext(),FileActivity.REQUIRED_PERMISSION)) {
-            Intent myIntent = new Intent(this, FileActivity.class);
+        if(PermActivity.hasPermission(getApplicationContext(),ExportActivity.REQUIRED_PERMISSION)) {
+            Intent myIntent = new Intent(this, ExportActivity.class);
             this.startActivity(myIntent);
         }else{
             Intent myIntent = new Intent(this, PermActivity.class);
-            myIntent.putExtra(PermActivity.PARAM_NEW_ACTIVITY,FileActivity.class);
-            myIntent.putExtra(PermActivity.PARAM_PERMISSION, FileActivity.REQUIRED_PERMISSION);
+            myIntent.putExtra(PermActivity.PARAM_NEW_ACTIVITY,ExportActivity.class);
+            myIntent.putExtra(PermActivity.PARAM_PERMISSION, ExportActivity.REQUIRED_PERMISSION);
             myIntent.putExtra(PermActivity.PARAM_MESSAGE,"Permission required to load/write CSV files for export/import.");
             this.startActivity(myIntent);
         }
