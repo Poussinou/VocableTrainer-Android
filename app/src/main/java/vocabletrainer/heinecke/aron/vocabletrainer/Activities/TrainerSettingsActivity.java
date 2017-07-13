@@ -82,7 +82,7 @@ public class TrainerSettingsActivity extends AppCompatActivity {
         editor.putBoolean(P_KEY_TS_ALLOW_HINTS, bHints.isChecked());
         editor.putInt(P_KEY_TS_TRAIN_MODE,spinner.getSelectedItemPosition());
         editor.putString(tTimesVocable.getText().toString(),P_KEY_TS_TIMES_VOCABLE);
-        editor.commit();
+        editor.apply();
     }
 
     /**

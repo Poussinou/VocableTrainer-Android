@@ -12,7 +12,6 @@ import android.widget.Button;
 import vocabletrainer.heinecke.aron.vocabletrainer.R;
 import vocabletrainer.heinecke.aron.vocabletrainer.lib.Database;
 
-import static vocabletrainer.heinecke.aron.vocabletrainer.Activities.FileActivity.REQUIRED_PERMISSION;
 import static vocabletrainer.heinecke.aron.vocabletrainer.Activities.ListSelector.PARAM_NEW_ACTIVITY;
 
 /**

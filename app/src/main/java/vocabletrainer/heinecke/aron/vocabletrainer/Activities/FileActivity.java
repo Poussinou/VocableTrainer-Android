@@ -1,11 +1,11 @@
 package vocabletrainer.heinecke.aron.vocabletrainer.Activities;
 
-import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.os.Bundle;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.AbsListView;
@@ -25,16 +25,17 @@ import vocabletrainer.heinecke.aron.vocabletrainer.lib.Formater;
 import vocabletrainer.heinecke.aron.vocabletrainer.lib.Storage.BasicFileEntry;
 import vocabletrainer.heinecke.aron.vocabletrainer.lib.Storage.FileEntry;
 
+import static vocabletrainer.heinecke.aron.vocabletrainer.Activities.MainActivity.PREFS_NAME;
+
 /**
  * File activity for file requests<br>
  * <b>requires WRITE_EXTERNAL_STORAGE</b><br>
  * To be called as startActivityForResult
  */
 public class FileActivity extends AppCompatActivity {
-    /**
-     * Param key for activity to call afterwards
-     */
-    public static final String PARAM_NEXT_ACTIVITY = "next_activity";
+    private static final String P_KEY_FA_LAST_DIR = "last_directory";
+    private static final String P_KEY_FA_LAST_FILENAME = "last_filename";
+
     /**
      * Param key under which the selected file is returned to the next activity<br>
      * File is passed as string containing the absolute path<br>
@@ -56,6 +57,10 @@ public class FileActivity extends AppCompatActivity {
      * Param key for short message to display
      */
     public static final String PARAM_MESSAGE = "message";
+    /**
+     * Optional param key for default file name, used upon write flag set true
+     */
+    public static final String PARAM_DEFAULT_FILENAME = "default_filename";
 
     private static final String TAG = "FileActivity";
     private ListView listView;
@@ -67,14 +72,15 @@ public class FileActivity extends AppCompatActivity {
     private FileListAdapter adapter;
     private Formater fmt;
     private boolean write;
-    private Class nextActivity;
     private File currentDir;
     private BasicFileEntry selectedEntry;
     private String basicDir; // user invisible part to remove
+    private String defaultFileName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d(TAG,"init");
         setContentView(R.layout.activity_file);
         fmt = new Formater();
 
@@ -86,9 +92,11 @@ public class FileActivity extends AppCompatActivity {
         Intent intent = getIntent();
         msg.setText(intent.getStringExtra(PARAM_MESSAGE));
         write = intent.getBooleanExtra(PARAM_WRITE_FLAG, false);
-        nextActivity = (Class) intent.getSerializableExtra(PARAM_NEXT_ACTIVITY);
 
         tFileName.setVisibility(write ? View.VISIBLE : View.GONE);
+
+        String defaultName = intent.getStringExtra(PARAM_DEFAULT_FILENAME);
+        defaultFileName = defaultName == null ? "file.xy" : defaultName;
 
         initListView();
     }
@@ -114,11 +122,12 @@ public class FileActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, final View view, int pos, long id) {
                 BasicFileEntry entry = entries.get(pos);
                 if (entry.getTypeID() == BasicFileEntry.TYPE_FILE) {
+                    Log.d(TAG, "selected: " + entry.getName());
                     view.setSelected(true);
                     selectedEntry = entry;
                     bOk.setEnabled(true);
                     if (write) {
-                        tFileName.setText(((FileEntry) entry).getName());
+                        tFileName.setText(entry.getName());
                     }
                 } else if (entry.getTypeID() == BasicFileEntry.TYPE_DIR) {
                     currentDir = ((FileEntry) entry).getFile();
@@ -163,9 +172,9 @@ public class FileActivity extends AppCompatActivity {
      * @param view
      */
     public void onOkPressed(View view) {
-        if (selectedEntry != null) {
-            Log.d(TAG, "selected: " + selectedEntry.getName());
-            File cFile = new File(currentDir, tFileName.getText().toString());
+        if (write || selectedEntry != null) {
+            File cFile = write ? new File(currentDir, tFileName.getText().toString()) : ((FileEntry)selectedEntry).getFile();
+            Log.d(TAG,"file:"+cFile.getAbsolutePath());
             if (write) {
                 if (cFile.isDirectory()) {
                     //TODO: dir error dialog
@@ -179,30 +188,10 @@ public class FileActivity extends AppCompatActivity {
             if(cFile != null){
                 Intent returnIntent = new Intent();
                 returnIntent.putExtra(RETURN_FILE,cFile);
-                returnIntent.putExtra(RETURN_FILE_USER_NAME,tCurrentDir.getText().toString());
+                returnIntent.putExtra(RETURN_FILE_USER_NAME,tCurrentDir.getText().toString()+File.separator+cFile.getName());
                 setResult(Activity.RESULT_OK,returnIntent);
                 finish();
             }
-//        boolean fileIsValid = false;
-//        File cFile;
-//        if(write){
-//            cFile = new File(currentDir,tFileName.getText().toString());
-//            if(cFile.isDirectory()){
-//                //TODO: dir error dialog
-//            }else if(cFile.exists()){
-//                //TODO: exists error dialog
-//            }else{
-//                fileIsValid = true;
-//            }
-//        }else{
-//
-//        }
-//
-//        if(fileIsValid) {
-//            Intent intent = new Intent(FileActivity.this, nextActivity);
-//            intent.putExtra(PARAM_PASSED_FILE, cFile);
-//            this.startActivity(intent);
-//        }
         }
     }
 
@@ -226,10 +215,15 @@ public class FileActivity extends AppCompatActivity {
      * Load default or last path / file into dialog
      */
     private void setBasicDir() {
-        //TODO: load from storage, check whether path still valid
-        // check also for full-file path or just directory
-        this.currentDir = Environment.getExternalStorageDirectory();
+        SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+        currentDir = new File(settings.getString(P_KEY_FA_LAST_DIR,""));
+        if(!currentDir.exists()){ // old value not valid anymore
+            Log.w(TAG,"old path is invalid");
+            currentDir = Environment.getExternalStorageDirectory();
+        }
+        currentDir.mkdirs(); // mkdirs, we're sure to have a valid path
         this.basicDir = Environment.getExternalStorageDirectory().getAbsolutePath();
+        tFileName.setText(settings.getString(P_KEY_FA_LAST_FILENAME,defaultFileName));
     }
 
     /**
@@ -264,4 +258,14 @@ public class FileActivity extends AppCompatActivity {
         tCurrentDir.setText(newDirLabel);
     }
 
+    @Override
+    protected void onStop(){
+        super.onStop();
+        // Save values
+        SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+        SharedPreferences.Editor editor = settings.edit();
+        editor.putString(P_KEY_FA_LAST_FILENAME,tFileName.getText().toString());
+        editor.putString(P_KEY_FA_LAST_DIR,currentDir.getAbsolutePath());
+        editor.apply();
+    }
 }
