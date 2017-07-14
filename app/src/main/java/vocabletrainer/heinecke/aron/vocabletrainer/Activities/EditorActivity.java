@@ -22,14 +22,21 @@ import vocabletrainer.heinecke.aron.vocabletrainer.lib.Database;
 import vocabletrainer.heinecke.aron.vocabletrainer.lib.Storage.Entry;
 import vocabletrainer.heinecke.aron.vocabletrainer.lib.Storage.Table;
 
-import static vocabletrainer.heinecke.aron.vocabletrainer.Activities.ListSelector.PARAM_PASSED_SELECTION;
 import static vocabletrainer.heinecke.aron.vocabletrainer.lib.Database.ID_RESERVED_SKIP;
 
 /**
  * List editor activity
  */
 public class EditorActivity extends AppCompatActivity {
+    private final static int LIST_SELECT_REQUEST_CODE = 10;
+    /**
+     * Param key for new table, default is false
+     */
     public static final String PARAM_NEW_TABLE = "NEW_TABLE";
+    /**
+     * Param key for list to load upon new_table false
+     */
+    public static final String PARAM_TABLE = "table";
     private static final String TAG = "EditorActivity";
     private Table table;
     private ArrayList<Entry> entries;
@@ -63,7 +70,7 @@ public class EditorActivity extends AppCompatActivity {
             Log.d(TAG, "new table mode");
             showTableInfoDialog(true);
         } else {
-            Table tbl = (Table) intent.getSerializableExtra(PARAM_PASSED_SELECTION);
+            Table tbl = (Table) intent.getSerializableExtra(PARAM_TABLE);
             if (tbl != null) {
                 this.table = tbl;
                 entries.addAll(db.getVocablesOfTable(table));

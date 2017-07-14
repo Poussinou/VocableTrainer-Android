@@ -1,10 +1,12 @@
 package vocabletrainer.heinecke.aron.vocabletrainer.Activities;
 
 import android.app.Activity;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -12,7 +14,9 @@ import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.TableLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -76,6 +80,7 @@ public class FileActivity extends AppCompatActivity {
     private BasicFileEntry selectedEntry;
     private String basicDir; // user invisible part to remove
     private String defaultFileName;
+    private File selectedFile;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -161,6 +166,18 @@ public class FileActivity extends AppCompatActivity {
      * @param view
      */
     public void onCancelPressed(View view) {
+        cancel();
+    }
+
+    @Override
+    public void onBackPressed(){
+        cancel();
+    }
+
+    /**
+     * Cancel file activity
+     */
+    private void cancel(){
         Intent returnIntent = new Intent();
         setResult(Activity.RESULT_CANCELED, returnIntent);
         finish();
@@ -173,25 +190,46 @@ public class FileActivity extends AppCompatActivity {
      */
     public void onOkPressed(View view) {
         if (write || selectedEntry != null) {
-            File cFile = write ? new File(currentDir, tFileName.getText().toString()) : ((FileEntry)selectedEntry).getFile();
-            Log.d(TAG,"file:"+cFile.getAbsolutePath());
+            selectedFile = write ? new File(currentDir, tFileName.getText().toString()) : ((FileEntry)selectedEntry).getFile();
+            Log.d(TAG,"file:"+selectedFile.getAbsolutePath());
             if (write) {
-                if (cFile.isDirectory()) {
-                    //TODO: dir error dialog
-                    cFile = null;
-                } else if (cFile.exists()) {
-                    //TODO: exists error dialog
-                    cFile = null;
+                if (selectedFile.isDirectory()) { // required !?
+                    selectedFile = null;
+                } else if (selectedFile.exists()) {
+                    final AlertDialog.Builder alert = new AlertDialog.Builder(this);
+
+                    alert.setTitle("File exists already");
+                    alert.setMessage("Do you really want to delete to delete %f".replace("%f",selectedFile.getName()));
+
+                    alert.setPositiveButton("Overwrite", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int whichButton) {
+                            useFile();
+                        }
+                    });
+
+                    alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int whichButton) {
+                            selectedFile = null;
+                        }
+                    });
+                    alert.show();
+
                 }
             }
 
-            if(cFile != null){
-                Intent returnIntent = new Intent();
-                returnIntent.putExtra(RETURN_FILE,cFile);
-                returnIntent.putExtra(RETURN_FILE_USER_NAME,tCurrentDir.getText().toString()+File.separator+cFile.getName());
-                setResult(Activity.RESULT_OK,returnIntent);
-                finish();
+            if(!write && selectedFile != null){
+                useFile();
             }
+        }
+    }
+
+    private void useFile(){
+        if(selectedFile != null){
+            Intent returnIntent = new Intent();
+            returnIntent.putExtra(RETURN_FILE,selectedFile);
+            returnIntent.putExtra(RETURN_FILE_USER_NAME,tCurrentDir.getText().toString()+File.separator+selectedFile.getName());
+            setResult(Activity.RESULT_OK,returnIntent);
+            finish();
         }
     }
 

@@ -136,4 +136,12 @@ public class PermActivity extends AppCompatActivity {
             }
         }
     }
+
+    /**
+     * Called upon cancel pressed
+     * @param view
+     */
+    public void onCancel(View view){
+        finish();
+    }
 }

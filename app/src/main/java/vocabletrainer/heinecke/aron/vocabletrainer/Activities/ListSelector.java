@@ -1,5 +1,6 @@
 package vocabletrainer.heinecke.aron.vocabletrainer.Activities;
 
+import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.v7.app.AlertDialog;
@@ -12,6 +13,7 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,16 +38,10 @@ public class ListSelector extends AppCompatActivity {
     public static final String PARAM_MULTI_SELECT = "multiselect";
 
     /**
-     * Param which activity should called upon this one<br>
-     * A {@link Class} is expect for this param
+     * Param key for return of selected lists<br>
+     * This key contains a {@link Table} object or a {@link List} of {@link Table}
      */
-    public static final String PARAM_NEW_ACTIVITY = "activity";
-
-    /**
-     * Param under which the selected table / tables are passed<br>
-     * This is a {@link Table} object or a {@link List} of {@link Table}
-     */
-    public static final String PARAM_PASSED_SELECTION = "selected";
+    public static final String RETURN_LISTS = "selected";
 
     /**
      * Pass this flag as true to call this as an deletion activity
@@ -82,6 +78,13 @@ public class ListSelector extends AppCompatActivity {
     public void onResume(){
         super.onResume();
         loadTables();
+    }
+
+    @Override
+    public void onBackPressed(){
+        Intent returnIntent = new Intent();
+        setResult(Activity.RESULT_CANCELED, returnIntent);
+        finish();
     }
 
     /**
@@ -127,9 +130,10 @@ public class ListSelector extends AppCompatActivity {
 
                     Log.d(TAG, "Going to: " + nextActivity.toString() + " with " + selectedTables.size() + " selected items");
 
-                    Intent intent = new Intent(ListSelector.this, nextActivity);
-                    intent.putExtra(PARAM_PASSED_SELECTION, selectedTables);
-                    ListSelector.this.startActivity(intent);
+                    Intent returnIntent = new Intent();
+                    returnIntent.putExtra(RETURN_LISTS,selectedTables);
+                    setResult(Activity.RESULT_OK,returnIntent);
+                    finish();
                 }
             });
         } else {
@@ -153,9 +157,10 @@ public class ListSelector extends AppCompatActivity {
                         Table table = (Table) adapter.getItem(position);
                         if (table.getId() != ID_RESERVED_SKIP) {
                             Log.d(TAG, nextActivity.toString());
-                            Intent intent = new Intent(ListSelector.this, nextActivity);
-                            intent.putExtra(PARAM_PASSED_SELECTION, table);
-                            ListSelector.this.startActivity(intent);
+                            Intent returnIntent = new Intent();
+                            returnIntent.putExtra(RETURN_LISTS,table);
+                            setResult(Activity.RESULT_OK,returnIntent);
+                            finish();
                         }
                     }
 

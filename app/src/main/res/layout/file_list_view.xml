@@ -10,7 +10,8 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:text="First"></TextView>
+        android:text="First"
+        android:textSize="16sp"></TextView>
 
     <TextView
         android:id="@+id/entrySecondText"

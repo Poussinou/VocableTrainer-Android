@@ -64,6 +64,14 @@ public class ExportActivity extends AppCompatActivity {
         startActivityForResult(myIntent,REQUEST_FILE_RESULT_CODE);
     }
 
+    /**
+     * Called on table select click
+     * @param view
+     */
+    public void selectTables(View view){
+        
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_FILE_RESULT_CODE) {
