@@ -48,7 +48,12 @@ public class ListSelector extends AppCompatActivity {
      */
     public static final String PARAM_DELETE_FLAG = "delete";
 
-    private Class nextActivity;
+    /**
+     * Optional Param key for already selected lists, available when multiselect is set<br>
+     *     Expect a {@link List} of {@link Table}
+     */
+    public static final String PARAM_SELECTED = "selected";
+
     private boolean multiselect;
     private ListView listView;
     private TableListAdapter adapter;
@@ -65,19 +70,18 @@ public class ListSelector extends AppCompatActivity {
         Intent intent = getIntent();
         // handle passed params
         multiselect = intent.getBooleanExtra(PARAM_MULTI_SELECT, false);
-        nextActivity = (Class) intent.getSerializableExtra(PARAM_NEW_ACTIVITY);
         delete = intent.getBooleanExtra(PARAM_DELETE_FLAG, false);
 
         // setup listview
         initListView();
 
-        loadTables();
+        loadTables((ArrayList<Table>) intent.getSerializableExtra(PARAM_SELECTED));
     }
 
     @Override
     public void onResume(){
         super.onResume();
-        loadTables();
+        loadTables(null);
     }
 
     @Override
@@ -89,10 +93,24 @@ public class ListSelector extends AppCompatActivity {
 
     /**
      * Load tables from db
+     * @param tickedTables already selected tables, can be null
      */
-    private void loadTables() {
+    private void loadTables(List<Table> tickedTables) {
         tables = db.getTables();
         adapter.setAllUpdated(tables);
+
+        if(tickedTables != null){
+            //TODO: introduce hashmap and get rid of this hack
+            ArrayList<Integer> ticked = new ArrayList<>(tickedTables.size());
+            for(Table tbl : tickedTables){
+                ticked.add(tbl.getId());
+            }
+            for(int i = 0; i < tables.size(); i++){
+                if(ticked.contains(tables.get(i).getId())){
+                    listView.setItemChecked(i, true);
+                }
+            }
+        }
     }
 
     /**
@@ -128,7 +146,7 @@ public class ListSelector extends AppCompatActivity {
                         }
                     }
 
-                    Log.d(TAG, "Going to: " + nextActivity.toString() + " with " + selectedTables.size() + " selected items");
+                    Log.d(TAG, "returning with " + selectedTables.size() + " selected items");
 
                     Intent returnIntent = new Intent();
                     returnIntent.putExtra(RETURN_LISTS,selectedTables);
@@ -156,7 +174,6 @@ public class ListSelector extends AppCompatActivity {
                     public void onItemClick(AdapterView<?> parent, final View view, int position, long id) {
                         Table table = (Table) adapter.getItem(position);
                         if (table.getId() != ID_RESERVED_SKIP) {
-                            Log.d(TAG, nextActivity.toString());
                             Intent returnIntent = new Intent();
                             returnIntent.putExtra(RETURN_LISTS,table);
                             setResult(Activity.RESULT_OK,returnIntent);

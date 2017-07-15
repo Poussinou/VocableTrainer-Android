@@ -18,7 +18,6 @@ import vocabletrainer.heinecke.aron.vocabletrainer.lib.Storage.Table;
 import vocabletrainer.heinecke.aron.vocabletrainer.lib.Storage.TrainerSettings;
 import vocabletrainer.heinecke.aron.vocabletrainer.lib.Trainer;
 
-import static vocabletrainer.heinecke.aron.vocabletrainer.Activities.ListSelector.PARAM_PASSED_SELECTION;
 import static vocabletrainer.heinecke.aron.vocabletrainer.Activities.MainActivity.PREFS_NAME;
 import static vocabletrainer.heinecke.aron.vocabletrainer.Activities.TrainerActivity.PARAM_TABLES;
 import static vocabletrainer.heinecke.aron.vocabletrainer.Activities.TrainerActivity.PARAM_TRAINER_SETTINGS;
@@ -45,7 +44,7 @@ public class TrainerSettingsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_trainer_settings);
         setTitle(R.string.TSettings_Title);
         Intent intent = getIntent();
-        tables = (ArrayList<Table>) intent.getSerializableExtra(PARAM_PASSED_SELECTION);
+        tables = (ArrayList<Table>) intent.getSerializableExtra(ListSelector.RETURN_LISTS);
         if(tables == null){
             Log.wtf(TAG,"No table list passed!");
             return;

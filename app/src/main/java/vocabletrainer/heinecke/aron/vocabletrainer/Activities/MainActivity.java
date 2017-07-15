@@ -7,17 +7,12 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
-import java.io.File;
-
 import vocabletrainer.heinecke.aron.vocabletrainer.R;
 import vocabletrainer.heinecke.aron.vocabletrainer.lib.Database;
-import vocabletrainer.heinecke.aron.vocabletrainer.lib.Storage.Table;
-
-import static vocabletrainer.heinecke.aron.vocabletrainer.Activities.ListSelector.PARAM_NEW_ACTIVITY;
+import vocabletrainer.heinecke.aron.vocabletrainer.lib.Storage.TrainerSettings;
 
 /**
  * Main activity
@@ -65,13 +60,20 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if(resultCode == Activity.RESULT_OK){
             switch(requestCode){
-                case REQUEST_EDITOR_LIST:
-                    Intent myIntent = new Intent(this, ListSelector.class);
+                //Todo: rewrite both activities to use the returning list selector directly
+                case REQUEST_EDITOR_LIST: {
+                    Intent myIntent = new Intent(this, EditorActivity.class);
                     myIntent.putExtra(EditorActivity.PARAM_NEW_TABLE, false);
                     myIntent.putExtra(EditorActivity.PARAM_TABLE, data.getSerializableExtra(ListSelector.RETURN_LISTS));
                     this.startActivity(myIntent);
+                }
                 break;
-
+                case REQUEST_TRAINER_LIST: {
+                    Intent myIntent = new Intent(this, TrainerSettings.class);
+                    myIntent.putExtra(ListSelector.RETURN_LISTS, data.getSerializableExtra(ListSelector.RETURN_LISTS));
+                    this.startActivity(myIntent);
+                }
+                break;
             }
         }
     }
@@ -130,9 +132,8 @@ public class MainActivity extends AppCompatActivity {
      */
     public void showTrainer(View view){
         Intent myIntent = new Intent(this, ListSelector.class);
-        myIntent.putExtra(PARAM_NEW_ACTIVITY,TrainerSettingsActivity.class);
         myIntent.putExtra(ListSelector.PARAM_MULTI_SELECT, true);
-        this.startActivity(myIntent);
+        this.startActivityForResult(myIntent, REQUEST_TRAINER_LIST);
     }
 
     /**
