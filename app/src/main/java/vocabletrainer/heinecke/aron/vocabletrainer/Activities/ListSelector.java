@@ -22,6 +22,7 @@ import vocabletrainer.heinecke.aron.vocabletrainer.R;
 import vocabletrainer.heinecke.aron.vocabletrainer.lib.Database;
 import vocabletrainer.heinecke.aron.vocabletrainer.lib.Storage.Table;
 
+import static vocabletrainer.heinecke.aron.vocabletrainer.Activities.lib.TableListAdapter.STARTING_ITEM;
 import static vocabletrainer.heinecke.aron.vocabletrainer.lib.Database.ID_RESERVED_SKIP;
 
 /**
@@ -74,7 +75,6 @@ public class ListSelector extends AppCompatActivity {
 
         // setup listview
         initListView();
-
         loadTables((ArrayList<Table>) intent.getSerializableExtra(PARAM_SELECTED));
     }
 
@@ -98,16 +98,20 @@ public class ListSelector extends AppCompatActivity {
     private void loadTables(List<Table> tickedTables) {
         tables = db.getTables();
         adapter.setAllUpdated(tables);
-
+        Log.d(TAG,"before smth");
         if(tickedTables != null){
             //TODO: introduce hashmap and get rid of this hack
             ArrayList<Integer> ticked = new ArrayList<>(tickedTables.size());
             for(Table tbl : tickedTables){
                 ticked.add(tbl.getId());
             }
-            for(int i = 0; i < tables.size(); i++){
+            Log.d(TAG,"ticked: "+ticked.size()+" items:"+tables.size());
+
+            for(int i = STARTING_ITEM; i < tables.size(); i++){
+                Log.d(TAG,"checking item "+i);
                 if(ticked.contains(tables.get(i).getId())){
                     listView.setItemChecked(i, true);
+                    Log.d(TAG,"setting marker to "+i);
                 }
             }
         }
@@ -140,9 +144,8 @@ public class ListSelector extends AppCompatActivity {
                     int chkItemsCount = checkedItems.size();
 
                     for (int i = 0; i < chkItemsCount; ++i) {
-                        int position = checkedItems.keyAt(i);
                         if (checkedItems.valueAt(i)) {
-                            selectedTables.add(adapter.getItem(position));
+                            selectedTables.add(adapter.getItem(checkedItems.keyAt(i)));
                         }
                     }
 

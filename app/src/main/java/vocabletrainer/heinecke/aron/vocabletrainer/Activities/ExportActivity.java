@@ -3,6 +3,7 @@ package vocabletrainer.heinecke.aron.vocabletrainer.Activities;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -11,16 +12,30 @@ import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ListView;
 
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
+
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.List;
 
 import vocabletrainer.heinecke.aron.vocabletrainer.Activities.lib.TableListAdapter;
 import vocabletrainer.heinecke.aron.vocabletrainer.R;
+import vocabletrainer.heinecke.aron.vocabletrainer.lib.Database;
+import vocabletrainer.heinecke.aron.vocabletrainer.lib.Storage.Entry;
 import vocabletrainer.heinecke.aron.vocabletrainer.lib.Storage.Table;
+
+import static org.apache.commons.csv.CSVFormat.DEFAULT;
+import static vocabletrainer.heinecke.aron.vocabletrainer.lib.ExportHeaders.EXPORT_METADATA_COMMENT;
+import static vocabletrainer.heinecke.aron.vocabletrainer.lib.ExportHeaders.EXPORT_METADATA_START;
 
 /**
  * Export activity
@@ -42,19 +57,29 @@ public class ExportActivity extends AppCompatActivity {
     private FloatingActionButton addButton;
     private ArrayList<Table> tables;
     private TableListAdapter adapter;
+    private CheckBox chkExportTalbeInfo;
+    private CheckBox chkExportMultiple;
+    private ExportOperation exportTask;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_export);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-//        setSupportActionBar(toolbar);
 
         tExportFile = (EditText) findViewById(R.id.tExportFile);
         btnExport = (Button) findViewById(R.id.bExportStart);
         listView = (ListView) findViewById(R.id.lExportListView);
         addButton = (FloatingActionButton) findViewById(R.id.bExportAddTables);
+        chkExportMultiple = (CheckBox) findViewById(R.id.chkExportMulti);
+        chkExportTalbeInfo = (CheckBox) findViewById(R.id.chkExportMeta);
 
+        initView();
+    }
+
+    /**
+     * Init list view
+     */
+    private void initView() {
         tExportFile.setKeyListener(null);
         btnExport.setEnabled(false);
         tables = new ArrayList<>();
@@ -64,13 +89,13 @@ public class ExportActivity extends AppCompatActivity {
                 runSelectTables();
             }
         });
-        initList();
-    }
+        chkExportMultiple.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                checkInputOk();
+            }
+        });
 
-    /**
-     * Init list view
-     */
-    private void initList() {
         adapter = new TableListAdapter(this, R.layout.table_list_view, tables, false);
         listView.setAdapter(adapter);
         listView.setLongClickable(false);
@@ -114,11 +139,45 @@ public class ExportActivity extends AppCompatActivity {
         runSelectTables();
     }
 
+    /**
+     * Calls select tables activity
+     */
     private void runSelectTables() {
         Intent myIntent = new Intent(this, ListSelector.class);
         myIntent.putExtra(ListSelector.PARAM_SELECTED, tables);
         myIntent.putExtra(ListSelector.PARAM_MULTI_SELECT, true);
         startActivityForResult(myIntent, REQUEST_TABLES_RESULT_CODE);
+    }
+
+    /**
+     * Called upon ok press
+     *
+     * @param view
+     */
+    public void onOk(View view) {
+        ExportStorage es = new ExportStorage(tables, chkExportTalbeInfo.isSelected(), chkExportMultiple.isSelected(), expFile);
+        exportTask = new ExportOperation(es);
+        exportTask.execute();
+    }
+
+    private void exportStub() {
+        Log.d(TAG, "exporting..");
+
+        /*
+        for(Table tbl : tables){
+            if(tbl.getID() != SPACER){
+                ArrayList<Entry> entries =  getEntries..
+                insert to file
+                if(chkExportTableInfo){
+                    ... write info
+                }
+                for(Entry ent : entries){
+                    insert entries...
+                }
+
+            }
+        }
+        */
     }
 
     @Override
@@ -130,7 +189,7 @@ public class ExportActivity extends AppCompatActivity {
                 tExportFile.setText(data.getStringExtra(FileActivity.RETURN_FILE_USER_NAME));
                 checkInputOk();
             } else if (requestCode == REQUEST_TABLES_RESULT_CODE) {
-                tables = (ArrayList<Table>) data.getSerializableExtra(ListSelector.RETURN_LISTS);
+                adapter.setAllUpdated((ArrayList<Table>) data.getSerializableExtra(ListSelector.RETURN_LISTS));
                 checkInputOk();
             }
         }
@@ -139,7 +198,72 @@ public class ExportActivity extends AppCompatActivity {
     /**
      * Validate input & set export button accordingly
      */
-    private void checkInputOk(){
-        btnExport.setEnabled(tables.size() > 0 && expFile != null);
+    private void checkInputOk() {
+        Log.d(TAG, "tables:" + tables.size());
+        btnExport.setEnabled(tables.size() > 1 && expFile != null && (chkExportMultiple.isChecked() || (!chkExportMultiple.isChecked() && tables.size() == 2)));
+    }
+
+    /**
+     * Export task class
+     */
+    private class ExportOperation extends AsyncTask<Integer, Integer, String> {
+        private final ExportStorage es;
+        private final Database db;
+
+        public ExportOperation(ExportStorage es) {
+            this.es = es;
+            db = new Database(getApplicationContext());
+        }
+
+        @Override
+        protected String doInBackground(Integer... params) {
+            try (FileWriter fw = new FileWriter(es.file);
+                 BufferedWriter writer = new BufferedWriter(fw);
+                 CSVPrinter printer = new CSVPrinter(writer, DEFAULT);
+            ) {
+                for (Table tbl : es.tables) {
+                    if (es.exportTableInfo) {
+                        printer.print(EXPORT_METADATA_START);
+                        printer.println();
+                        printer.printComment(EXPORT_METADATA_COMMENT);
+                        printer.println();
+                        printer.print(tbl.getName());
+                        printer.print(tbl.getNameA());
+                        printer.print(tbl.getNameB());
+                        printer.println();
+                    }
+                    List<Entry> vocables = db.getVocablesOfTable(tbl);
+
+                    for(Entry ent : vocables){
+                        printer.print(ent.getAWord());
+                        printer.print(ent.getBWord());
+                        printer.print(ent.getTip());
+                        printer.println();
+                    }
+                }
+
+            } catch (Exception e) {
+                Log.wtf(TAG, e);
+            }
+
+            return null;
+        }
+    }
+
+    /**
+     * Export storage class
+     */
+    private class ExportStorage {
+        public final ArrayList<Table> tables;
+        public final boolean exportTableInfo;
+        public final boolean exportMultiple;
+        public final File file;
+
+        public ExportStorage(ArrayList<Table> tables, boolean exportTableInfo, boolean exportMultiple, File file) {
+            this.tables = tables;
+            this.exportTableInfo = exportTableInfo;
+            this.exportMultiple = exportMultiple;
+            this.file = file;
+        }
     }
 }
