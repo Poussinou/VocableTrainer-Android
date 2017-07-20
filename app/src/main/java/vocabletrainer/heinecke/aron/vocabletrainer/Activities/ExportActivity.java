@@ -15,6 +15,7 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
@@ -46,6 +47,7 @@ public class ExportActivity extends AppCompatActivity {
     private static final int REQUEST_TABLES_RESULT_CODE = 20;
 
     private static final String TAG = "ExportActivity";
+    private static final int MAX_PROGRESS = 100;
     /**
      * This permission is required for this activity to work
      */
@@ -60,6 +62,7 @@ public class ExportActivity extends AppCompatActivity {
     private CheckBox chkExportTalbeInfo;
     private CheckBox chkExportMultiple;
     private ExportOperation exportTask;
+    private ProgressBar progressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,6 +75,7 @@ public class ExportActivity extends AppCompatActivity {
         addButton = (FloatingActionButton) findViewById(R.id.bExportAddTables);
         chkExportMultiple = (CheckBox) findViewById(R.id.chkExportMulti);
         chkExportTalbeInfo = (CheckBox) findViewById(R.id.chkExportMeta);
+        progressBar = (ProgressBar) findViewById(R.id.ExportProgressbar);
 
         initView();
     }
@@ -80,6 +84,7 @@ public class ExportActivity extends AppCompatActivity {
      * Init list view
      */
     private void initView() {
+        progressBar.setMax(MAX_PROGRESS);
         tExportFile.setKeyListener(null);
         btnExport.setEnabled(false);
         tables = new ArrayList<>();
@@ -155,29 +160,10 @@ public class ExportActivity extends AppCompatActivity {
      * @param view
      */
     public void onOk(View view) {
+        progressBar.setVisibility(View.VISIBLE);
         ExportStorage es = new ExportStorage(tables, chkExportTalbeInfo.isSelected(), chkExportMultiple.isSelected(), expFile);
         exportTask = new ExportOperation(es);
         exportTask.execute();
-    }
-
-    private void exportStub() {
-        Log.d(TAG, "exporting..");
-
-        /*
-        for(Table tbl : tables){
-            if(tbl.getID() != SPACER){
-                ArrayList<Entry> entries =  getEntries..
-                insert to file
-                if(chkExportTableInfo){
-                    ... write info
-                }
-                for(Entry ent : entries){
-                    insert entries...
-                }
-
-            }
-        }
-        */
     }
 
     @Override
@@ -210,6 +196,10 @@ public class ExportActivity extends AppCompatActivity {
         private final ExportStorage es;
         private final Database db;
 
+        /**
+         * Creates a new ExportOperation
+         * @param es
+         */
         public ExportOperation(ExportStorage es) {
             this.es = es;
             db = new Database(getApplicationContext());
@@ -217,11 +207,14 @@ public class ExportActivity extends AppCompatActivity {
 
         @Override
         protected String doInBackground(Integer... params) {
+            Log.d(TAG,"Starting background task")
             try (FileWriter fw = new FileWriter(es.file);
                  BufferedWriter writer = new BufferedWriter(fw);
                  CSVPrinter printer = new CSVPrinter(writer, DEFAULT);
             ) {
+                int i = 0;
                 for (Table tbl : es.tables) {
+                    Log.d(TAG,"Background task for tbl "+tbl.toString());
                     if (es.exportTableInfo) {
                         printer.print(EXPORT_METADATA_START);
                         printer.println();
@@ -240,13 +233,24 @@ public class ExportActivity extends AppCompatActivity {
                         printer.print(ent.getTip());
                         printer.println();
                     }
+                    i++;
+                    publishProgress((es.tables.size()/MAX_PROGRESS)*i);
                 }
-
+                Log.d(TAG,"closing all");
+                printer.close();
+                writer.close();
+                fw.close();
             } catch (Exception e) {
                 Log.wtf(TAG, e);
             }
 
             return null;
+        }
+
+        @Override
+        protected void onProgressUpdate(Integer... values){
+            Log.d(TAG,"updating progress");
+            progressBar.setProgress(values[0]);
         }
     }
 
@@ -259,6 +263,13 @@ public class ExportActivity extends AppCompatActivity {
         public final boolean exportMultiple;
         public final File file;
 
+        /**
+         * New export storage
+         * @param tables
+         * @param exportTableInfo
+         * @param exportMultiple
+         * @param file
+         */
         public ExportStorage(ArrayList<Table> tables, boolean exportTableInfo, boolean exportMultiple, File file) {
             this.tables = tables;
             this.exportTableInfo = exportTableInfo;

@@ -213,7 +213,8 @@ public class FileActivity extends AppCompatActivity {
                         }
                     });
                     alert.show();
-
+                }else{
+                    useFile();
                 }
             }
 
