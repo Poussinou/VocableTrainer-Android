@@ -101,15 +101,15 @@ public class PermActivity extends AppCompatActivity {
             // Should we show an explanation?
             if (ActivityCompat.shouldShowRequestPermissionRationale(activity,
                     perm)) {
-
+                Log.d(TAG,"not requesting..");
                 // Show an expanation to the user *asynchronously* -- don't block
                 // this thread waiting for the user's response! After the user
                 // sees the explanation, try again to request the permission.
 
-            } else {
+            }
 
                 // No explanation needed, we can request the permission.
-
+                Log.d(TAG,"requesting..");
                 ActivityCompat.requestPermissions(activity,
                         new String[]{perm},
                         MY_PERMISSIONS_REQUEST_READ_STORAGE);
@@ -117,7 +117,7 @@ public class PermActivity extends AppCompatActivity {
                 // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
                 // app-defined int constant. The callback method gets the
                 // result of the request.
-            }
+
         }
     }
 

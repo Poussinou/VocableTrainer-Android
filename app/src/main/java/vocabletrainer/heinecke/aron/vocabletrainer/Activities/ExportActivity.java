@@ -35,8 +35,10 @@ import vocabletrainer.heinecke.aron.vocabletrainer.lib.Storage.Entry;
 import vocabletrainer.heinecke.aron.vocabletrainer.lib.Storage.Table;
 
 import static org.apache.commons.csv.CSVFormat.DEFAULT;
+import static vocabletrainer.heinecke.aron.vocabletrainer.lib.Database.ID_RESERVED_SKIP;
 import static vocabletrainer.heinecke.aron.vocabletrainer.lib.ExportHeaders.EXPORT_METADATA_COMMENT;
 import static vocabletrainer.heinecke.aron.vocabletrainer.lib.ExportHeaders.EXPORT_METADATA_START;
+import static vocabletrainer.heinecke.aron.vocabletrainer.lib.ExportHeaders.EXPORT_METADATA_STOP;
 
 /**
  * Export activity
@@ -161,7 +163,7 @@ public class ExportActivity extends AppCompatActivity {
      */
     public void onOk(View view) {
         progressBar.setVisibility(View.VISIBLE);
-        ExportStorage es = new ExportStorage(tables, chkExportTalbeInfo.isSelected(), chkExportMultiple.isSelected(), expFile);
+        ExportStorage es = new ExportStorage(tables, chkExportTalbeInfo.isChecked(), chkExportMultiple.isChecked(), expFile);
         exportTask = new ExportOperation(es);
         exportTask.execute();
     }
@@ -207,23 +209,26 @@ public class ExportActivity extends AppCompatActivity {
 
         @Override
         protected String doInBackground(Integer... params) {
-            Log.d(TAG,"Starting background task")
+            Log.d(TAG,"Starting background task");
             try (FileWriter fw = new FileWriter(es.file);
+                 //TODO: enforce UTF-8
                  BufferedWriter writer = new BufferedWriter(fw);
                  CSVPrinter printer = new CSVPrinter(writer, DEFAULT);
             ) {
                 int i = 0;
                 for (Table tbl : es.tables) {
-                    Log.d(TAG,"Background task for tbl "+tbl.toString());
+                    if(tbl.getId() == ID_RESERVED_SKIP){
+                        continue;
+                    }
+                    Log.d(TAG,"exporting tbl "+tbl.toString());
                     if (es.exportTableInfo) {
-                        printer.print(EXPORT_METADATA_START);
-                        printer.println();
+                        printer.printRecord(EXPORT_METADATA_START);
                         printer.printComment(EXPORT_METADATA_COMMENT);
-                        printer.println();
                         printer.print(tbl.getName());
                         printer.print(tbl.getNameA());
                         printer.print(tbl.getNameB());
                         printer.println();
+                        printer.printRecord(EXPORT_METADATA_STOP);
                     }
                     List<Entry> vocables = db.getVocablesOfTable(tbl);
 
@@ -251,6 +256,11 @@ public class ExportActivity extends AppCompatActivity {
         protected void onProgressUpdate(Integer... values){
             Log.d(TAG,"updating progress");
             progressBar.setProgress(values[0]);
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            finish();
         }
     }
 
