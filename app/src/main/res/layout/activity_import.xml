@@ -19,7 +19,10 @@
         app:layout_constraintLeft_toLeftOf="parent"
         tools:focusable="false"
         app:layout_constraintRight_toLeftOf="@+id/bImportFile"
-        android:layout_marginRight="8dp" />
+        android:layout_marginRight="8dp"
+        android:layout_marginEnd="8dp"
+        tools:layout_constraintRight_creator="1"
+        tools:layout_constraintLeft_creator="1" />
 
     <Button
         android:id="@+id/bImportFile"
@@ -37,38 +40,12 @@
         android:id="@+id/spImportFormat"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginLeft="8dp"
         android:layout_marginTop="8dp"
-        app:layout_constraintTop_toBottomOf="@+id/chkImportOverwrite"
-        android:layout_marginRight="8dp"
-        app:layout_constraintRight_toRightOf="parent"
-        android:layout_marginLeft="8dp"
-        app:layout_constraintLeft_toLeftOf="parent" />
-
-    <CheckBox
-        android:id="@+id/chkImportMetadata"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="Detect List Metadata"
-        android:layout_marginLeft="8dp"
+        android:spinnerMode="dialog"
         app:layout_constraintLeft_toLeftOf="parent"
-        android:layout_marginTop="6dp"
-        app:layout_constraintTop_toBottomOf="@+id/tImportPath"
-        android:layout_marginStart="8dp"
-        android:layout_marginRight="8dp"
-        app:layout_constraintRight_toRightOf="parent" />
-
-    <CheckBox
-        android:id="@+id/chkImportMultilist"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="Detect Multilist"
-        android:layout_marginLeft="8dp"
-        app:layout_constraintLeft_toLeftOf="parent"
-        android:layout_marginTop="8dp"
-        app:layout_constraintTop_toBottomOf="@+id/chkImportMetadata"
-        android:layout_marginStart="8dp"
-        android:layout_marginRight="8dp"
-        app:layout_constraintRight_toRightOf="parent" />
+        app:layout_constraintRight_toLeftOf="@+id/textView5"
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout2" />
 
     <Button
         android:id="@+id/bImportOk"
@@ -89,30 +66,135 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toLeftOf="@+id/bImportOk" />
 
-    <CheckBox
-        android:id="@+id/chkImportOverwrite"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="Overwrite Existing"
-        android:layout_marginLeft="8dp"
-        app:layout_constraintLeft_toLeftOf="parent"
-        android:layout_marginTop="8dp"
-        app:layout_constraintTop_toBottomOf="@+id/chkImportMultilist"
-        android:layout_marginStart="8dp"
-        android:layout_marginRight="8dp"
-        app:layout_constraintRight_toRightOf="parent" />
-
     <ListView
         android:id="@+id/lstImportPreview"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginBottom="0dp"
         android:layout_marginLeft="8dp"
         android:layout_marginRight="8dp"
-        android:layout_marginTop="8dp"
         app:layout_constraintBottom_toTopOf="@+id/bImportOk"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        tools:layout_constraintRight_creator="1"
+        tools:layout_constraintBottom_creator="1"
+        tools:layout_constraintLeft_creator="1"
+        android:layout_marginTop="8dp"
         app:layout_constraintTop_toBottomOf="@+id/spImportFormat" />
+
+    <RadioButton
+        android:id="@+id/rbImportMetadata"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Parse List Metadata"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@+id/rbImportToList"
+        app:layout_constraintTop_toBottomOf="@+id/bImportFile" />
+
+    <RadioButton
+        android:id="@+id/rbImportToList"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Import to specific List"
+        app:layout_constraintBaseline_toBaselineOf="@+id/rbImportMetadata"
+        app:layout_constraintLeft_toRightOf="@+id/rbImportMetadata"
+        app:layout_constraintRight_toRightOf="parent" />
+
+    <android.support.constraint.ConstraintLayout
+        android:id="@+id/linearLayout2"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:orientation="vertical"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/rbImportMetadata"
+        tools:layout_constraintLeft_creator="1"
+        tools:layout_constraintRight_creator="1"
+        tools:layout_constraintTop_creator="1">
+
+        <CheckBox
+            android:id="@+id/chkImportOverride"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Override Existing Entries"
+            app:layout_constraintTop_toBottomOf="@+id/bImportSelectList"
+            android:layout_marginRight="8dp"
+            app:layout_constraintRight_toRightOf="parent"
+            android:layout_marginLeft="0dp"
+            app:layout_constraintLeft_toLeftOf="parent"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp" />
+
+        <Button
+            android:id="@+id/bImportSelectList"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="8dp"
+            android:text="Select List"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/chkImportMultilist"
+            android:layout_marginEnd="8dp" />
+
+        <EditText
+            android:id="@+id/tImportList"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_marginLeft="0dp"
+            android:layout_marginRight="8dp"
+            android:layout_marginStart="8dp"
+            android:ems="10"
+            android:hint="List to use"
+            android:inputType="textPersonName"
+            app:layout_constraintBaseline_toBaselineOf="@+id/bImportSelectList"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toLeftOf="@+id/bImportSelectList"
+            tools:focusable="false"
+            tools:layout_constraintLeft_creator="1"
+            tools:layout_constraintRight_creator="1" />
+
+        <CheckBox
+            android:id="@+id/chkImportMultilist"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Detect Multilist"
+            android:visibility="gone"
+            app:layout_constraintLeft_toLeftOf="@+id/chkImportOverwrite"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:layout_constraintTop_creator="1" />
+
+        <CheckBox
+            android:id="@+id/chkImportOverwrite"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Overwrite Existing"
+            android:visibility="gone"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/chkImportMultilist"
+            tools:layout_constraintTop_creator="1" />
+
+    </android.support.constraint.ConstraintLayout>
+
+    <TextView
+        android:id="@+id/textView5"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginEnd="8dp"
+        android:text="CSV Format"
+        app:layout_constraintLeft_toRightOf="@+id/spImportFormat"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/spImportFormat" />
+
 </android.support.constraint.ConstraintLayout>

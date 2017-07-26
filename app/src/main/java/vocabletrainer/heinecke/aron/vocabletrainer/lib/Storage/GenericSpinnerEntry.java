@@ -1,5 +1,7 @@
 package vocabletrainer.heinecke.aron.vocabletrainer.lib.Storage;
 
+import android.media.CamcorderProfile;
+
 /**
  * Generic spinner entry holder
  * @param <T> Object type for value of element
@@ -24,6 +26,11 @@ public class GenericSpinnerEntry<T> {
      */
     public String getDisplayText(){
         return displayText;
+    }
+
+    @Override
+    public String toString(){
+        return getDisplayText();
     }
 
     /**
