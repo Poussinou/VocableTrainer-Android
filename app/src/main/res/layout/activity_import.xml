@@ -10,18 +10,16 @@
         android:id="@+id/tImportPath"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
-        android:layout_marginLeft="16dp"
-        android:layout_marginRight="8dp"
+        android:layout_marginLeft="8dp"
         android:layout_marginStart="8dp"
         android:ems="10"
-        android:hint="File"
+        android:hint="Import File"
         android:inputType="textPersonName"
         app:layout_constraintBaseline_toBaselineOf="@+id/bImportFile"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toLeftOf="@+id/bExportSelFile"
-        tools:focusable="false" />
+        tools:focusable="false"
+        app:layout_constraintRight_toLeftOf="@+id/bImportFile"
+        android:layout_marginRight="8dp" />
 
     <Button
         android:id="@+id/bImportFile"
@@ -31,6 +29,90 @@
         android:layout_marginRight="8dp"
         android:onClick="selectFile"
         android:text="Select FIle"
-        app:layout_constraintBaseline_toBaselineOf="@+id/tExportFile"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="8dp" />
+
+    <Spinner
+        android:id="@+id/spImportFormat"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@+id/chkImportOverwrite"
+        android:layout_marginRight="8dp"
+        app:layout_constraintRight_toRightOf="parent"
+        android:layout_marginLeft="8dp"
+        app:layout_constraintLeft_toLeftOf="parent" />
+
+    <CheckBox
+        android:id="@+id/chkImportMetadata"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Detect List Metadata"
+        android:layout_marginLeft="8dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:layout_marginTop="6dp"
+        app:layout_constraintTop_toBottomOf="@+id/tImportPath"
+        android:layout_marginStart="8dp"
+        android:layout_marginRight="8dp"
         app:layout_constraintRight_toRightOf="parent" />
+
+    <CheckBox
+        android:id="@+id/chkImportMultilist"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Detect Multilist"
+        android:layout_marginLeft="8dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@+id/chkImportMetadata"
+        android:layout_marginStart="8dp"
+        android:layout_marginRight="8dp"
+        app:layout_constraintRight_toRightOf="parent" />
+
+    <Button
+        android:id="@+id/bImportOk"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:text="Import"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toRightOf="@+id/bImportCancel"
+        app:layout_constraintRight_toRightOf="parent" />
+
+    <Button
+        android:id="@+id/bImportCancel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Cancel"
+        app:layout_constraintBaseline_toBaselineOf="@+id/bImportOk"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@+id/bImportOk" />
+
+    <CheckBox
+        android:id="@+id/chkImportOverwrite"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Overwrite Existing"
+        android:layout_marginLeft="8dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@+id/chkImportMultilist"
+        android:layout_marginStart="8dp"
+        android:layout_marginRight="8dp"
+        app:layout_constraintRight_toRightOf="parent" />
+
+    <ListView
+        android:id="@+id/lstImportPreview"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginBottom="0dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintBottom_toTopOf="@+id/bImportOk"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/spImportFormat" />
 </android.support.constraint.ConstraintLayout>
