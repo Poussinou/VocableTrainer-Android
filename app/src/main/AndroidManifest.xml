@@ -30,7 +30,7 @@
             android:name=".Activities.test.test"
             android:label="@string/title_activity_test"
             android:theme="@style/AppTheme.NoActionBar" />
-        <activity android:name=".Activities.ImportActivity"></activity>
+        <activity android:name=".Activities.ImportActivity" />
     </application>
 
 </manifest>

@@ -3,17 +3,17 @@ package vocabletrainer.heinecke.aron.vocabletrainer.Activities;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
+import android.support.constraint.ConstraintLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.RadioButton;
 import android.widget.Spinner;
+import android.widget.TextView;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -21,10 +21,8 @@ import org.apache.commons.csv.CSVRecord;
 
 import java.io.File;
 import java.io.FileReader;
-import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.ArrayList;
-import java.util.List;
 
 import vocabletrainer.heinecke.aron.vocabletrainer.Activities.lib.EntryListAdapter;
 import vocabletrainer.heinecke.aron.vocabletrainer.R;
@@ -43,22 +41,48 @@ public class ImportActivity extends AppCompatActivity {
     private static final int REQUEST_FILE_RESULT_CODE = 1;
     private static final String TAG = "ImportActivity";
 
+    /**
+     * Import list handling mode
+     */
+    public enum IMPORT_LIST_MODE {
+        /**
+         * Replace existing list's vocables
+         */
+        REPLACE,
+        /**
+         * Add to existing lists
+         */
+        ADD,
+        /**
+         * Ignore existing lists
+         */
+        IGNORE,
+        /**
+         * Create new list
+         */
+        CREATE
+    }
+
     Spinner spFormat;
-    RadioButton rbDetectMetadata;
-    RadioButton rbImportToList;
-    CheckBox chkOverrideList;
+    Spinner spSingleMetadata;
+    Spinner spSingelRaw;
+    Spinner spImportMultilist;
     Button bSelectList;
     EditText etList;
-    CheckBox chkReplaceLists;
-    CheckBox chkMultiList;
     EditText etFile;
     Button bImportOk;
     ListView list;
+    ConstraintLayout singleLayout;
+    TextView tImportMessage;
+
 
     File impFile;
     EntryListAdapter adapter;
     Table targetList;
-    ArrayAdapter<GenericSpinnerEntry<CSVFormat>> spinnerAdapter;
+    ArrayAdapter<GenericSpinnerEntry<CSVFormat>> spAdapterFormat;
+    ArrayAdapter<GenericSpinnerEntry<IMPORT_LIST_MODE>> spAdapterMultilist;
+    ArrayAdapter<GenericSpinnerEntry<IMPORT_LIST_MODE>> spAdapterSinglelist;
+    ArrayAdapter<GenericSpinnerEntry<IMPORT_LIST_MODE>> spAdapterRawlist;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,14 +91,13 @@ public class ImportActivity extends AppCompatActivity {
 
         adapter = new EntryListAdapter(this, new ArrayList<Entry>(), getApplicationContext());
 
-        rbDetectMetadata = (RadioButton) findViewById(R.id.rbImportMetadata);
-        rbImportToList = (RadioButton) findViewById(R.id.rbImportToList);
-        chkMultiList = (CheckBox) findViewById(R.id.chkImportMultilist);
-        chkOverrideList = (CheckBox) findViewById(R.id.chkImportOverride);
+        spSingelRaw = (Spinner) findViewById(R.id.spImportSingleRaw);
+        spSingleMetadata = (Spinner) findViewById(R.id.spImportSingleMetadata);
+        spImportMultilist = (Spinner) findViewById(R.id.spImportMultiple);
+        singleLayout = (ConstraintLayout) findViewById(R.id.cImportNonMultilist);
+        tImportMessage = (TextView) findViewById(R.id.tImportMsg);
         etList = (EditText) findViewById(R.id.tImportList);
         bSelectList = (Button) findViewById(R.id.bImportSelectList);
-        chkReplaceLists = (CheckBox) findViewById(R.id.chkImportOverwrite);
-//        chkReplaceLists = (CheckBox) findViewById(R.id.);
         etFile = (EditText) findViewById(R.id.tImportPath);
         bImportOk = (Button) findViewById(R.id.bImportOk);
         list = (ListView) findViewById(R.id.lstImportPreview);
@@ -86,47 +109,38 @@ public class ImportActivity extends AppCompatActivity {
         etList.setKeyListener(null);
         etFile.setKeyListener(null);
 
-        rbDetectMetadata.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                rbImportToList.setChecked(false);
-                changeRadioButtons();
-            }
-        });
-        rbImportToList.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                rbDetectMetadata.setChecked(false);
-                changeRadioButtons();
-            }
-        });
-
-        spinnerAdapter = new ArrayAdapter<>(getApplicationContext(),android.R.layout.simple_spinner_item);
-        spFormat.setAdapter(spinnerAdapter);
-        spinnerAdapter.add(new GenericSpinnerEntry<>(CSVFormat.DEFAULT,"Default"));
-        spinnerAdapter.add(new GenericSpinnerEntry<>(CSVFormat.EXCEL,"Excel"));
-        spinnerAdapter.add(new GenericSpinnerEntry<>(CSVFormat.RFC4180,"RFC4180"));
-        spinnerAdapter.add(new GenericSpinnerEntry<>(CSVFormat.TDF,"Tabs"));
-
-        changeRadioButtons();
+        initSpinner();
     }
 
     /**
-     * Change visibility of options according to radio button selection
+     * Setup spinners
      */
-    private void changeRadioButtons(){
-        boolean detectMetadata;
-        if(detectMetadata = rbDetectMetadata.isChecked()){
-            rbImportToList.setChecked(false);
-        }else{
-            rbImportToList.setChecked(true);
-            rbDetectMetadata.setChecked(false);
-        }
-        bSelectList.setVisibility(detectMetadata ? View.GONE : View.VISIBLE);
-        etList.setVisibility(detectMetadata ? View.GONE : View.VISIBLE);
-        chkOverrideList.setVisibility(detectMetadata ? View.GONE : View.VISIBLE);
-        chkReplaceLists.setVisibility(detectMetadata ? View.VISIBLE : View.GONE);
-        chkMultiList.setVisibility(detectMetadata ? View.VISIBLE : View.GONE);
+    private void initSpinner(){
+        spAdapterFormat = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_spinner_item);
+        spAdapterMultilist = new ArrayAdapter<>(getApplicationContext(),android.R.layout.simple_spinner_item);
+        spAdapterSinglelist = new ArrayAdapter<>(getApplicationContext(),android.R.layout.simple_spinner_item);
+        spAdapterRawlist= new ArrayAdapter<>(getApplicationContext(),android.R.layout.simple_spinner_item);
+
+        spAdapterFormat.add(new GenericSpinnerEntry<>(CSVFormat.DEFAULT, "Default"));
+        spAdapterFormat.add(new GenericSpinnerEntry<>(CSVFormat.EXCEL, "Excel"));
+        spAdapterFormat.add(new GenericSpinnerEntry<>(CSVFormat.RFC4180, "RFC4180"));
+        spAdapterFormat.add(new GenericSpinnerEntry<>(CSVFormat.TDF, "Tabs"));
+
+        spAdapterMultilist.add(new GenericSpinnerEntry<>(IMPORT_LIST_MODE.REPLACE,"Replace existing lists"));
+        spAdapterMultilist.add(new GenericSpinnerEntry<>(IMPORT_LIST_MODE.REPLACE,"Merge existing lists"));
+        spAdapterMultilist.add(new GenericSpinnerEntry<>(IMPORT_LIST_MODE.REPLACE,"Ignore existing lists"));
+
+        spAdapterRawlist.add(new GenericSpinnerEntry<>(IMPORT_LIST_MODE.CREATE,"Create new list"));
+        spAdapterRawlist.add(new GenericSpinnerEntry<>(IMPORT_LIST_MODE.ADD,"Merge into list"));
+
+        spAdapterSinglelist.add(new GenericSpinnerEntry<>(IMPORT_LIST_MODE.REPLACE,"Replace list"));
+        spAdapterSinglelist.add(new GenericSpinnerEntry<>(IMPORT_LIST_MODE.ADD,"Add to list"));
+        spAdapterSinglelist.add(new GenericSpinnerEntry<>(IMPORT_LIST_MODE.CREATE,"Create new list"));
+
+        spFormat.setAdapter(spAdapterFormat);
+        spImportMultilist.setAdapter(spAdapterMultilist);
+        spSingleMetadata.setAdapter(spAdapterSinglelist);
+        spSingelRaw.setAdapter(spAdapterRawlist);
     }
 
     /**
@@ -166,7 +180,7 @@ public class ImportActivity extends AppCompatActivity {
      * Refreshes preview of import parsing
      */
     private void refreshParsePreview(){
-        CSVFormat format = spinnerAdapter.getItem(spFormat.getSelectedItemPosition()).getObject();
+        CSVFormat format = spAdapterFormat.getItem(spFormat.getSelectedItemPosition()).getObject();
 
         try(
             final Reader reader = new FileReader(impFile);
@@ -174,6 +188,7 @@ public class ImportActivity extends AppCompatActivity {
         ){
             for (final CSVRecord record : parser) {
                 //TODO
+
             }
         } catch (Exception e){
                 Log.e(TAG,"",e);
