@@ -4,10 +4,9 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.AsyncTask;
+import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -17,14 +16,11 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 
-import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
-import java.io.IOException;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,7 +34,6 @@ import static org.apache.commons.csv.CSVFormat.DEFAULT;
 import static vocabletrainer.heinecke.aron.vocabletrainer.lib.Database.ID_RESERVED_SKIP;
 import static vocabletrainer.heinecke.aron.vocabletrainer.lib.ExportHeaders.EXPORT_METADATA_COMMENT;
 import static vocabletrainer.heinecke.aron.vocabletrainer.lib.ExportHeaders.EXPORT_METADATA_START;
-import static vocabletrainer.heinecke.aron.vocabletrainer.lib.ExportHeaders.EXPORT_METADATA_STOP;
 
 /**
  * Export activity
@@ -228,7 +223,6 @@ public class ExportActivity extends AppCompatActivity {
                         printer.print(tbl.getNameA());
                         printer.print(tbl.getNameB());
                         printer.println();
-                        printer.printRecord(EXPORT_METADATA_STOP);
                     }
                     List<Entry> vocables = db.getVocablesOfTable(tbl);
 

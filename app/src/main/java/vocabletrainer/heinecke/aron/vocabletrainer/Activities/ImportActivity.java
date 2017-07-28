@@ -8,6 +8,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -23,9 +24,12 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.Reader;
 import java.util.ArrayList;
+import java.util.List;
 
 import vocabletrainer.heinecke.aron.vocabletrainer.Activities.lib.EntryListAdapter;
 import vocabletrainer.heinecke.aron.vocabletrainer.R;
+import vocabletrainer.heinecke.aron.vocabletrainer.lib.Importer.Importer;
+import vocabletrainer.heinecke.aron.vocabletrainer.lib.Importer.PreviewParser;
 import vocabletrainer.heinecke.aron.vocabletrainer.lib.Storage.Entry;
 import vocabletrainer.heinecke.aron.vocabletrainer.lib.Storage.GenericSpinnerEntry;
 import vocabletrainer.heinecke.aron.vocabletrainer.lib.Storage.Table;
@@ -77,6 +81,7 @@ public class ImportActivity extends AppCompatActivity {
 
 
     File impFile;
+    List<Entry> lst;
     EntryListAdapter adapter;
     Table targetList;
     ArrayAdapter<GenericSpinnerEntry<CSVFormat>> spAdapterFormat;
@@ -89,7 +94,8 @@ public class ImportActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_import);
 
-        adapter = new EntryListAdapter(this, new ArrayList<Entry>(), getApplicationContext());
+        lst = new ArrayList<>();
+        adapter = new EntryListAdapter(this, lst, getApplicationContext());
 
         spSingelRaw = (Spinner) findViewById(R.id.spImportSingleRaw);
         spSingleMetadata = (Spinner) findViewById(R.id.spImportSingleMetadata);
@@ -141,6 +147,28 @@ public class ImportActivity extends AppCompatActivity {
         spImportMultilist.setAdapter(spAdapterMultilist);
         spSingleMetadata.setAdapter(spAdapterSinglelist);
         spSingelRaw.setAdapter(spAdapterRawlist);
+
+        spFormat.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                refreshParsing();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+    }
+
+    private void refreshParsing(){
+        if(impFile != null && impFile.exists()) {
+            CSVFormat format = spAdapterFormat.getItem(spFormat.getSelectedItemPosition()).getObject();
+            Importer imp = new Importer(format, impFile, new PreviewParser(lst));
+            lst.clear();
+            imp.parse();
+            adapter.notifyDataSetChanged();
+        }
     }
 
     /**
@@ -171,27 +199,8 @@ public class ImportActivity extends AppCompatActivity {
                 impFile = (File) data.getSerializableExtra(FileActivity.RETURN_FILE);
                 etFile.setText(data.getStringExtra(FileActivity.RETURN_FILE_USER_NAME));
                 checkInputOk();
+                refreshParsing();
             }
-        }
-    }
-
-
-    /**
-     * Refreshes preview of import parsing
-     */
-    private void refreshParsePreview(){
-        CSVFormat format = spAdapterFormat.getItem(spFormat.getSelectedItemPosition()).getObject();
-
-        try(
-            final Reader reader = new FileReader(impFile);
-            final CSVParser parser = new CSVParser(reader, format)
-        ){
-            for (final CSVRecord record : parser) {
-                //TODO
-
-            }
-        } catch (Exception e){
-                Log.e(TAG,"",e);
         }
     }
 }

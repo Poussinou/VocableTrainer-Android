@@ -16,14 +16,18 @@ import static vocabletrainer.heinecke.aron.vocabletrainer.lib.ExportHeaders.EXPO
  * Importer class
  */
 public class Importer {
-
-
     private final static String TAG = "Importer";
     private File source;
     private CSVFormat format;
     private ImportHandler handler;
 
-    public Importer(final CSVFormat format, final File source, final ImportHandler handler, final boolean) {
+    /**
+     * Creates a new importer
+     * @param format Format to use
+     * @param source Source for parsing
+     * @param handler Data handler
+     */
+    public Importer(final CSVFormat format, final File source, final ImportHandler handler) {
         this.source = source;
         this.format = format;
         this.handler = handler;
