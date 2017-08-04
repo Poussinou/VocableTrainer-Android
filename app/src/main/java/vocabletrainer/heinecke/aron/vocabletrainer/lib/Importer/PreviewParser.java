@@ -1,6 +1,7 @@
 package vocabletrainer.heinecke.aron.vocabletrainer.lib.Importer;
 
 import java.util.List;
+import java.util.concurrent.Callable;
 
 import vocabletrainer.heinecke.aron.vocabletrainer.lib.Storage.Entry;
 import vocabletrainer.heinecke.aron.vocabletrainer.lib.Storage.Table;
@@ -16,7 +17,7 @@ public class PreviewParser implements ImportHandler {
     private final static int PARSE_LIMIT = 5;
     private int parsed_limiter = 0;
     private final Table tbl = null;
-    private int tblCount = 0;
+    private long tblCount = 0;
 
     public PreviewParser(List<Entry> list){
         this.list = list;
@@ -35,6 +36,24 @@ public class PreviewParser implements ImportHandler {
             list.add(new Entry(A,B,Tipp,null,-2L));
             parsed_limiter++;
         }
+    }
+
+    /**
+     * Returns amount of rows detected
+     * @return
+     */
+    public long getAmountRows(){
+        return tblCount;
+    }
+
+    @Override
+    public void finish() {
+
+    }
+
+    @Override
+    public void start() {
+
     }
 
     /**

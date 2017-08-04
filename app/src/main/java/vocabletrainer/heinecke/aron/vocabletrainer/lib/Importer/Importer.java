@@ -1,72 +1,96 @@
 package vocabletrainer.heinecke.aron.vocabletrainer.lib.Importer;
 
+import android.content.Context;
+import android.database.sqlite.SQLiteStatement;
+import android.os.AsyncTask;
 import android.util.Log;
 
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVParser;
-import org.apache.commons.csv.CSVRecord;
+import java.util.ArrayList;
+import java.util.List;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
+import vocabletrainer.heinecke.aron.vocabletrainer.Activities.ImportActivity;
+import vocabletrainer.heinecke.aron.vocabletrainer.lib.Database;
+import vocabletrainer.heinecke.aron.vocabletrainer.lib.Storage.Entry;
+import vocabletrainer.heinecke.aron.vocabletrainer.lib.Storage.Table;
 
-import static vocabletrainer.heinecke.aron.vocabletrainer.lib.ExportHeaders.EXPORT_METADATA_START;
+import static android.content.ContentValues.TAG;
+import static vocabletrainer.heinecke.aron.vocabletrainer.lib.Database.MIN_ID_TRESHOLD;
 
 /**
- * Importer class
+ * Importer, does actual importing
  */
-public class Importer {
-    private final static String TAG = "Importer";
-    private File source;
-    private CSVFormat format;
-    private ImportHandler handler;
+public class Importer implements ImportHandler {
 
-    /**
-     * Creates a new importer
-     * @param format Format to use
-     * @param source Source for parsing
-     * @param handler Data handler
-     */
-    public Importer(final CSVFormat format, final File source, final ImportHandler handler) {
-        this.source = source;
-        this.format = format;
-        this.handler = handler;
+    private static final int BUFFER_CAPACITY = 100;
+
+    private PreviewParser previewParser;
+    private ImportActivity.IMPORT_LIST_MODE mode;
+    private Table overrideTable;
+    private Table currentTable;
+    private Database db;
+    private ArrayList<Entry> insertBuffer = new ArrayList<>(BUFFER_CAPACITY);
+    private boolean ignoreEntries;
+
+    public Importer(Context context, PreviewParser previewParser, ImportActivity.IMPORT_LIST_MODE mode, Table overrideTable) {
+        if(previewParser.isRawData() && overrideTable == null){
+            Log.e(TAG,"RawData without passed table!");
+            throw new IllegalArgumentException("Missing table!");
+        }
+        this.previewParser = previewParser;
+        this.mode = mode;
+        this.overrideTable = overrideTable;
+        db = new Database(context);
+        ignoreEntries = false;
+    }
+
+    @Override
+    public void start() {
+        // raw data or single list with create flag
+        if(previewParser.isRawData() || (!previewParser.isMultiList() && mode == ImportActivity.IMPORT_LIST_MODE.CREATE)){
+            currentTable = overrideTable;
+        }
+    }
+
+    @Override
+    public void newTable(String name, String columnA, String columnB) {
+        ignoreEntries = false;
+        Table tbl = new Table(columnA,columnB,name);
+        if(previewParser.isRawData()){
+            Log.w(TAG,"New Table command on raw data list!");
+        }else if(previewParser.isMultiList() || mode != ImportActivity.IMPORT_LIST_MODE.CREATE) {
+            if(db.getTableID(tbl) >= MIN_ID_TRESHOLD){
+                if(mode == ImportActivity.IMPORT_LIST_MODE.REPLACE){
+                    db.emptyList(tbl);
+                }else if (mode == ImportActivity.IMPORT_LIST_MODE.IGNORE){
+                    ignoreEntries = true;
+                }
+            }
+
+            currentTable = tbl;
+        }
+    }
+
+    @Override
+    public void newEntry(String A, String B, String Tipp) {
+        if(!ignoreEntries) {
+            insertBuffer.add(new Entry(A, B, Tipp, currentTable, -1L));
+            if (insertBuffer.size() >= BUFFER_CAPACITY) {
+                flushBuffer();
+            }
+        }
     }
 
     /**
-     * Run parser
+     * Flushes the buffer and inserts everything
      */
-    public void parse() {
-        synchronized (source) {
-            try (
-                    FileReader reader = new FileReader(source);
-                    BufferedReader bufferedReader = new BufferedReader(reader);
-                    CSVParser parser = new CSVParser(bufferedReader, format)
-            ) {
-                boolean tbl_start = false;
-                for (CSVRecord record : parser) {
-                    Log.d(TAG,"processing "+record.toString());
-                    if(record.size() < 2){
-                        Log.w(TAG,"ignoring following entry: "+record.toString());
-                    }
-                    String v1 = record.get(0);
-                    String v2 = record.get(1);
-                    String v3 = record.get(2);
-                    if(tbl_start){
-                        handler.newTable(v1,v2,v3);
-                        tbl_start = false;
-                    }else if(tbl_start = v1.equals(EXPORT_METADATA_START[0]) && v2.equals(EXPORT_METADATA_START[1]) && v3.equals(EXPORT_METADATA_START[2])){
-                        //do nothing
-                    }else{
-                        handler.newEntry(v1,v2,v3);
-                    }
-                }
-                parser.close();
-                bufferedReader.close();
-                reader.close();
-            } catch (Exception e) {
-                Log.e(TAG, "", e);
-            }
-        }
+    private void flushBuffer(){
+        db.upsertEntries(insertBuffer);
+        insertBuffer.clear();
+        insertBuffer.ensureCapacity(BUFFER_CAPACITY);
+    }
+
+    @Override
+    public void finish() {
+        flushBuffer();
     }
 }

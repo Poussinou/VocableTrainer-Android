@@ -20,4 +20,14 @@ public interface ImportHandler {
      * @param Tipp
      */
     void newEntry(String A, String B, String Tipp);
+
+    /**
+     * Called when all entries where read
+     */
+    void finish();
+
+    /**
+     * Called directly before the start
+     */
+    void start();
 }
